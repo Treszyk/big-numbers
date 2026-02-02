@@ -1,4 +1,15 @@
 use std::cmp::Ordering;
+use std::str::FromStr;
+use std::fmt;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseBigIntError;
+
+impl fmt::Display for ParseBigIntError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Invalid digit in string")
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 
@@ -129,6 +140,7 @@ impl BigUInt {
         BigUInt { limbs: result }.truncate()
     }
 
+    // TODO: optimize multiplication, it's the slowest operation in the library
     pub fn mul(&self, _other: &Self) -> Self {
         if self.is_zero() || _other.is_zero() {
             return BigUInt::new();
@@ -215,5 +227,43 @@ impl BigUInt {
         (BigUInt { limbs: q }.truncate(), remainder.truncate())
     }
 }
+
+impl FromStr for BigUInt {
+    type Err = ParseBigIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut result = BigUInt::from_u32(0);
+
+        for c in s.chars() {
+            let digit = c.to_digit(10).ok_or(ParseBigIntError)?;
+            
+            result = result.mul_single(10);
+            result = result.add(&BigUInt::from_u32(digit));
+        }
+
+        Ok(result)
+    }
+}
+
+impl fmt::Display for BigUInt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.is_zero() {
+            return write!(f, "0");
+        }
+
+        let mut temp = self.clone();
+        let mut digits = String::new();
+
+        while !temp.is_zero() {
+             let (q, r) = temp.div_single(10);
+             temp = q;
+             digits.push(std::char::from_digit(r, 10).unwrap());
+         }
+
+         write!(f, "{}", digits.chars().rev().collect::<String>())
+    }
+}
+
+
 
 

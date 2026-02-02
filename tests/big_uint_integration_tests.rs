@@ -1,4 +1,5 @@
 use big_numbers::BigUInt;
+use std::str::FromStr;
 
 #[test]
 fn test_is_zero() {
@@ -301,3 +302,62 @@ fn test_div_correction_case() {
     assert_eq!(check.limbs, a.limbs);
     assert!(r < b);
 }
+
+#[test]
+fn test_from_str_simple() {
+    let a = BigUInt::from_str("12345").unwrap();
+    
+    assert_eq!(a.limbs, vec![12345]);
+}
+
+#[test]
+fn test_from_str_large() {
+    let s = "18446744073709551616";
+    let a = BigUInt::from_str(s).unwrap();
+    
+    assert_eq!(a.limbs, vec![0, 0, 1]);
+}
+
+#[test]
+fn test_from_str_invalid() {
+    let a = BigUInt::from_str("123a45");
+
+    assert!(a.is_err());
+}
+
+#[test]
+fn test_from_str_zero() {
+    let a = BigUInt::from_str("0").unwrap();
+
+    assert!(a.is_zero());
+    assert_eq!(a.limbs, vec![0]);
+}
+
+#[test]
+fn test_display_simple() {
+    let a = BigUInt::from_u32(12345);
+    assert_eq!(a.to_string(), "12345");
+}
+
+#[test]
+fn test_display_zero() {
+    let a = BigUInt::new();
+    assert_eq!(a.to_string(), "0");
+}
+
+#[test]
+fn test_display_large() {
+    // 2^256 big number ;o
+    let a = BigUInt { limbs: vec![0, 0, 0, 0, 0, 0, 0, 0, 1] };
+    let expected = "115792089237316195423570985008687907853269984665640564039457584007913129639936";
+    assert_eq!(a.to_string(), expected);
+}
+
+#[test]
+fn test_display_roundtrip() {
+    let s = "1234567890123456789012345678901234567890";
+    let a = BigUInt::from_str(s).unwrap();
+    assert_eq!(a.to_string(), s);
+}
+
+
