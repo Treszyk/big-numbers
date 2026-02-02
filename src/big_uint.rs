@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
+
 pub struct BigUInt {
     pub limbs: Vec<u32>,
 }
@@ -50,6 +51,17 @@ impl BigUInt {
         }
 
         BigUInt { limbs: result }
+    }
+
+    pub fn shift_limbs(&self, n: usize) -> Self {
+        if self.is_zero() {
+            return self.clone();
+        }
+
+        let mut new_limbs = vec![0; n];
+        new_limbs.extend(&self.limbs);
+        
+        BigUInt { limbs: new_limbs }
     }
 
     pub fn add(&self, _other: &Self) -> Self {
@@ -116,17 +128,27 @@ impl BigUInt {
 
         BigUInt { limbs: result }.truncate()
     }
-    
+
     pub fn mul(&self, _other: &Self) -> Self {
+        if self.is_zero() || _other.is_zero() {
+            return BigUInt::new();
+        }
+        
         let parts_len = _other.limbs.len(); 
-        let parts = vec![];
+        let mut parts = vec![];
 
         for i in 0..parts_len {
             let part = self.mul_single(_other.limbs[i]);
             parts.push(part);
         }
 
-        BigUInt { limbs: result }.truncate()
+        let mut result = parts[0].clone();
+
+        for j in 1..parts_len {
+            result = result.add(&parts[j].shift_limbs(j));
+        }
+
+        result.truncate()
     }
 
     // division is the trickiest of them all but I'll leave the stub for it here
@@ -199,12 +221,52 @@ mod tests {
     }
 
     #[test]
+    fn test_mul_single() {
+        let a = BigUInt::from_u32(10);
+        let c = a.mul_single(5);
+
+        assert_eq!(c.limbs, vec![50]);
+
+        let a = BigUInt::from_u32(u32::MAX);
+        let c = a.mul_single(2);
+
+        assert_eq!(c.limbs, vec![u32::MAX - 1, 1]);
+    }
+
+    #[test]
+    fn test_mul_zero() {
+        let a = BigUInt::from_u32(10);
+        let b = BigUInt::new();
+        let c = a.mul(&b);
+
+        assert!(c.is_zero());
+    }
+
+    #[test]
     fn test_simple_multiplication() {
         let a = BigUInt::from_u32(10);
         let b = BigUInt::from_u32(20);
         let c = a.mul(&b);
 
         assert_eq!(c.limbs, vec![200]);
+    }
+
+    #[test]
+    fn test_mul_large() {
+        let a = BigUInt::from_u32(u32::MAX);
+        let b = BigUInt::from_u32(u32::MAX);
+        let c = a.mul(&b);
+
+        assert_eq!(c.limbs, vec![1, u32::MAX - 1]);
+    }
+    
+    #[test]
+    fn test_mul_tripling_max() {
+        let a = BigUInt::from_u32(u32::MAX);
+        let b = BigUInt::from_u32(3);
+        let c = a.mul(&b);
+
+        assert_eq!(c.limbs, vec![u32::MAX - 2, 2]);
     }
 
     #[test]
