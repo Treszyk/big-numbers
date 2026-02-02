@@ -25,13 +25,18 @@ impl PartialOrd for BigUInt {
 
 impl Ord for BigUInt {
     fn cmp(&self, other: &Self) -> Ordering {
-        let len_cmp = self.limbs.len().cmp(&other.limbs.len());
+        let self_real_len = self.limbs.iter().rposition(|&l| l != 0).map_or(0, |p| p + 1).max(1);
+        let other_real_len = other.limbs.iter().rposition(|&l| l != 0).map_or(0, |p| p + 1).max(1);
+
+        let len_cmp = self_real_len.cmp(&other_real_len);
         if len_cmp != Ordering::Equal {
             return len_cmp;
         }
 
-        for i in (0..self.limbs.len()).rev() {
-            let limb_cmp = self.limbs[i].cmp(&other.limbs[i]);
+        for i in (0..self_real_len).rev() {
+            let self_val = self.limbs.get(i).unwrap_or(&0);
+            let other_val = other.limbs.get(i).unwrap_or(&0);
+            let limb_cmp = self_val.cmp(other_val);
             if limb_cmp != Ordering::Equal {
                 return limb_cmp;
             }
@@ -47,7 +52,7 @@ impl BigUInt {
     }
 
     pub fn is_zero(&self) -> bool {
-        self.limbs.is_empty() || (self.limbs.len() == 1 && self.limbs[0] == 0)
+        self.limbs.iter().all(|&l| l == 0)
     }
 
     pub fn from_u32(_n: u32) -> Self {

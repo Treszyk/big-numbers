@@ -1,15 +1,55 @@
 use big_numbers::BigUInt;
 use std::str::FromStr;
+use std::cmp::Ordering;
 
 #[test]
 fn test_is_zero() {
     let a = BigUInt::from_u32(0);
     let b = BigUInt::new();
     let c = BigUInt::from_u32(15);
+
     assert!(a.is_zero());
     assert!(b.is_zero());
     assert!(!c.is_zero())
 }
+
+#[test]
+fn test_exhaustive_is_zero() {
+    assert!(BigUInt::new().is_zero());
+    assert!(BigUInt::from_u32(0).is_zero());
+    
+    assert!(BigUInt { limbs: vec![0, 0, 0] }.is_zero());
+    assert!(BigUInt { limbs: vec![0; 100] }.is_zero());
+    
+    assert!(BigUInt { limbs: vec![] }.is_zero());
+    
+    assert!(!BigUInt::from_u32(1).is_zero());
+    assert!(!BigUInt { limbs: vec![0, 0, 1] }.is_zero());
+}
+
+#[test]
+fn test_exhaustive_comparison() {
+    let zero = BigUInt::new();
+    let padded_zero = BigUInt { limbs: vec![0, 0, 0] };
+    let empty_zero = BigUInt { limbs: vec![] };
+    
+    assert_eq!(zero.cmp(&padded_zero), Ordering::Equal);
+    assert_eq!(padded_zero.cmp(&empty_zero), Ordering::Equal);
+    
+    let five = BigUInt::from_u32(5);
+    let padded_five = BigUInt { limbs: vec![5, 0, 0, 0] };
+    assert_eq!(five.cmp(&padded_five), Ordering::Equal);
+    
+    let ten = BigUInt::from_u32(10);
+    assert_eq!(ten.cmp(&padded_five), Ordering::Greater);
+    assert_eq!(padded_five.cmp(&ten), Ordering::Less);
+    
+    let high_val = BigUInt { limbs: vec![0, 1] };
+    let high_val_padded = BigUInt { limbs: vec![0, 1, 0, 0] };
+    assert_eq!(high_val.cmp(&high_val_padded), Ordering::Equal);
+}
+
+
 
 #[test]
 fn test_simple_addition() {

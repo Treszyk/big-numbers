@@ -19,14 +19,14 @@ impl BigInt {
     }
 
     pub fn from_u32(value: u32) -> Self {
-        BigInt { sign: Sign::Plus, magnitude: BigUInt::from_u32(value) }
+        BigInt { sign: Sign::Plus, magnitude: BigUInt::from_u32(value) }.normalize()
     }
 
     pub fn from_i32(value: i32) -> Self {
         let sign = if value < 0 { Sign::Minus } else { Sign::Plus };
         let magnitude = BigUInt::from_u32(value.unsigned_abs());
         
-        BigInt { sign, magnitude }
+        BigInt { sign, magnitude }.normalize()
     }   
 
     pub fn negate(&self) -> Self {
@@ -52,7 +52,7 @@ impl BigInt {
     pub fn add(&self, other: &Self) -> Self {
         if self.sign == other.sign {
             let new_magnitude = self.magnitude.add(&other.magnitude);
-            return BigInt { sign: self.sign, magnitude: new_magnitude };
+            return BigInt { sign: self.sign, magnitude: new_magnitude }.normalize();
         }
 
         let (larger, smaller) = if self.magnitude >= other.magnitude {
