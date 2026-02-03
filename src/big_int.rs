@@ -83,6 +83,18 @@ impl BigInt {
         
         BigInt { sign: new_sign, magnitude: new_magnitude }.normalize()
     }
+
+    pub fn div(&self, other: &Self) -> (Self, Self) {
+        let (quotient_magnitude, remainder_magnitude) = self.magnitude.div(&other.magnitude);
+        let quotient_sign = if self.sign == other.sign {
+            Sign::Plus
+        } else {
+            Sign::Minus
+        };
+        
+        (BigInt { sign: quotient_sign, magnitude: quotient_magnitude }.normalize(),
+         BigInt { sign: self.sign, magnitude: remainder_magnitude }.normalize())
+    }
 }
 
 impl FromStr for BigInt {

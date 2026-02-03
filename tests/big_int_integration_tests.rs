@@ -146,4 +146,27 @@ fn test_big_int_mul_exhaustive() {
     }
 }
 
+#[test]
+fn test_big_int_div_exhaustive() {
+    let cases = vec![
+        ("7", "3", "2", "1"),
+        ("-7", "3", "-2", "-1"),
+        ("7", "-3", "-2", "1"),
+        ("-7", "-3", "2", "-1"),
+        ("100", "5", "20", "0"),
+        ("0", "10", "0", "0"),
+
+        ("18446744073709551616", "4294967296", "4294967296", "0"),
+        ("18446744073709551617", "4294967296", "4294967296", "1"),
+    ];
+
+    for (a_str, b_str, exp_q, exp_r) in cases {
+        let a = BigInt::from_str(a_str).unwrap();
+        let b = BigInt::from_str(b_str).unwrap();
+        let (q, r) = a.div(&b);
+        assert_eq!(q.to_string(), exp_q, "Quotient mismatch for {} / {}", a_str, b_str);
+        assert_eq!(r.to_string(), exp_r, "Remainder mismatch for {} / {}", a_str, b_str);
+    }
+}
+
 
