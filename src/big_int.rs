@@ -1,5 +1,6 @@
-use crate::big_uint::BigUInt;
+use crate::big_uint::{BigUInt, ParseBigIntError};
 use std::fmt;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Sign {
@@ -28,6 +29,8 @@ impl BigInt {
         
         BigInt { sign, magnitude }.normalize()
     }   
+
+
 
     pub fn negate(&self) -> Self {
         if self.magnitude.is_zero() {
@@ -68,6 +71,42 @@ impl BigInt {
 
     pub fn sub(&self, other: &Self) -> Self {
         self.add(&other.negate())
+    }
+
+    pub fn mul(&self, other: &Self) -> Self {
+        let new_magnitude = self.magnitude.mul(&other.magnitude);
+        let new_sign = if self.sign == other.sign {
+            Sign::Plus
+        } else {
+            Sign::Minus
+        };
+        
+        BigInt { sign: new_sign, magnitude: new_magnitude }.normalize()
+    }
+}
+
+impl FromStr for BigInt {
+    type Err = ParseBigIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseBigIntError);
+        }
+
+        let (sign, magnitude_str) = if s.starts_with('-') {
+            (Sign::Minus, &s[1..])
+        } else if s.starts_with('+') {
+            (Sign::Plus, &s[1..])
+        } else {
+            (Sign::Plus, s)
+        };
+
+        if magnitude_str.is_empty() {
+            return Err(ParseBigIntError);
+        }
+
+        let magnitude = BigUInt::from_str(magnitude_str)?;
+        Ok(BigInt { sign, magnitude }.normalize())
     }
 }
 

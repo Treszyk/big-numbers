@@ -1,10 +1,33 @@
 use big_numbers::big_int::{BigInt, Sign};
+use std::str::FromStr;
 
 #[test]
 fn test_big_int_from_u32() {
     let a = BigInt::from_u32(100);
     assert_eq!(a.sign, Sign::Plus);
     assert_eq!(a.to_string(), "100");
+}
+
+#[test]
+fn test_big_int_from_str() {
+    let cases = vec![
+        ("100", Sign::Plus, "100"),
+        ("-100", Sign::Minus, "-100"),
+        ("+100", Sign::Plus, "100"),
+        ("0", Sign::Plus, "0"),
+        ("-0", Sign::Plus, "0"),
+        ("+0", Sign::Plus, "0"),
+    ];
+
+    for (input, expected_sign, expected_str) in cases {
+        let a = BigInt::from_str(input).unwrap();
+        assert_eq!(a.sign, expected_sign, "Sign mismatch for {}", input);
+        assert_eq!(a.to_string(), expected_str, "String mismatch for {}", input);
+    }
+
+    assert!(BigInt::from_str("").is_err());
+    assert!(BigInt::from_str("-").is_err());
+    assert!(BigInt::from_str("12a").is_err());
 }
 
 #[test]
@@ -63,44 +86,64 @@ fn test_big_int_add_zero_result() {
 #[test]
 fn test_big_int_add_exhaustive() {
     let cases = vec![
-        (10, 20, "30"),
-        (10, -20, "-10"),
-        (-10, 20, "10"),
-        (-10, -20, "-30"),
-        (0, 0, "0"),
-        (0, 5, "5"),
-        (0, -5, "-5"),
-        (5, 0, "5"),
-        (-5, 0, "-5"),
-        (100, -100, "0"),
-        (-100, 100, "0"),
+        ("10", "20", "30"),
+        ("10", "-20", "-10"),
+        ("-10", "20", "10"),
+        ("-10", "-20", "-30"),
+        ("0", "0", "0"),
+        ("100", "-100", "0"),
+        ("4294967295", "1", "4294967296"),
+        ("-4294967296", "1", "-4294967295"),
+        ("18446744073709551615", "1", "18446744073709551616"),
     ];
 
-    for (a_val, b_val, expected) in cases {
-        let a = BigInt::from_i32(a_val);
-        let b = BigInt::from_i32(b_val);
-        assert_eq!(a.add(&b).to_string(), expected, "Failed: {} + {}", a_val, b_val);
+    for (a_str, b_str, expected) in cases {
+        let a = BigInt::from_str(a_str).unwrap();
+        let b = BigInt::from_str(b_str).unwrap();
+        assert_eq!(a.add(&b).to_string(), expected, "Failed: {} + {}", a_str, b_str);
     }
 }
 
 #[test]
 fn test_big_int_sub_exhaustive() {
     let cases = vec![
-        (30, 10, "20"),
-        (10, 30, "-20"),
-        (10, -10, "20"),
-        (-10, 10, "-20"),
-        (-10, -10, "0"),
-        (0, 0, "0"),
-        (0, 10, "-10"),
-        (0, -10, "10"),
-        (10, 0, "10"),
-        (-10, 0, "-10"),
+        ("30", "10", "20"),
+        ("10", "30", "-20"),
+        ("10", "-10", "20"),
+        ("-10", "10", "-20"),
+        ("-10", "-10", "0"),
+        ("0", "10", "-10"),
+        ("4294967296", "1", "4294967295"),
+        ("1", "4294967296", "-4294967295"),
+        ("18446744073709551616", "1", "18446744073709551615"),
     ];
 
-    for (a_val, b_val, expected) in cases {
-        let a = BigInt::from_i32(a_val);
-        let b = BigInt::from_i32(b_val);
-        assert_eq!(a.sub(&b).to_string(), expected, "Failed: {} - {}", a_val, b_val);
+    for (a_str, b_str, expected) in cases {
+        let a = BigInt::from_str(a_str).unwrap();
+        let b = BigInt::from_str(b_str).unwrap();
+        assert_eq!(a.sub(&b).to_string(), expected, "Failed: {} - {}", a_str, b_str);
     }
 }
+
+#[test]
+fn test_big_int_mul_exhaustive() {
+    let cases = vec![
+        ("10", "20", "200"),
+        ("10", "-20", "-200"),
+        ("-10", "20", "-200"),
+        ("-10", "-20", "200"),
+        ("0", "5", "0"),
+        ("1", "100", "100"),
+        ("-1", "100", "-100"),
+        ("4294967296", "2", "8589934592"),
+        ("-4294967296", "-4294967296", "18446744073709551616"),
+    ];
+
+    for (a_str, b_str, expected) in cases {
+        let a = BigInt::from_str(a_str).expect(&format!("Failed to parse a: {}", a_str));
+        let b = BigInt::from_str(b_str).expect(&format!("Failed to parse b: {}", b_str));
+        assert_eq!(a.mul(&b).to_string(), expected, "Failed: {} * {}", a_str, b_str);
+    }
+}
+
+

@@ -237,6 +237,10 @@ impl FromStr for BigUInt {
     type Err = ParseBigIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseBigIntError);
+        }
+
         let mut result = BigUInt::from_u32(0);
 
         for c in s.chars() {
@@ -246,7 +250,7 @@ impl FromStr for BigUInt {
             result = result.add(&BigUInt::from_u32(digit));
         }
 
-        Ok(result)
+        Ok(result.truncate())
     }
 }
 
