@@ -60,3 +60,47 @@ fn test_big_int_add_zero_result() {
     assert_eq!(c.add(&d).to_string(), "0");
 }
 
+#[test]
+fn test_big_int_add_exhaustive() {
+    let cases = vec![
+        (10, 20, "30"),
+        (10, -20, "-10"),
+        (-10, 20, "10"),
+        (-10, -20, "-30"),
+        (0, 0, "0"),
+        (0, 5, "5"),
+        (0, -5, "-5"),
+        (5, 0, "5"),
+        (-5, 0, "-5"),
+        (100, -100, "0"),
+        (-100, 100, "0"),
+    ];
+
+    for (a_val, b_val, expected) in cases {
+        let a = BigInt::from_i32(a_val);
+        let b = BigInt::from_i32(b_val);
+        assert_eq!(a.add(&b).to_string(), expected, "Failed: {} + {}", a_val, b_val);
+    }
+}
+
+#[test]
+fn test_big_int_sub_exhaustive() {
+    let cases = vec![
+        (30, 10, "20"),
+        (10, 30, "-20"),
+        (10, -10, "20"),
+        (-10, 10, "-20"),
+        (-10, -10, "0"),
+        (0, 0, "0"),
+        (0, 10, "-10"),
+        (0, -10, "10"),
+        (10, 0, "10"),
+        (-10, 0, "-10"),
+    ];
+
+    for (a_val, b_val, expected) in cases {
+        let a = BigInt::from_i32(a_val);
+        let b = BigInt::from_i32(b_val);
+        assert_eq!(a.sub(&b).to_string(), expected, "Failed: {} - {}", a_val, b_val);
+    }
+}

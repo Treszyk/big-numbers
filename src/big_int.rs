@@ -65,6 +65,10 @@ impl BigInt {
         
         BigInt { sign: larger.sign, magnitude: new_magnitude }.normalize()
     }
+
+    pub fn sub(&self, other: &Self) -> Self {
+        self.add(&other.negate())
+    }
 }
 
 impl fmt::Display for BigInt {
