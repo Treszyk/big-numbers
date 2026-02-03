@@ -1,4 +1,5 @@
 use crate::big_uint::{BigUInt, ParseBigIntError};
+use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 
@@ -9,9 +10,32 @@ pub enum Sign {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+
 pub struct BigInt {
     pub sign: Sign,
     pub magnitude: BigUInt,
+}
+
+impl PartialOrd for BigInt {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for BigInt {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.sign != other.sign {
+            return match self.sign {
+                Sign::Plus => Ordering::Greater,
+                Sign::Minus => Ordering::Less,
+            };
+        }
+
+        match self.sign {
+            Sign::Plus => self.magnitude.cmp(&other.magnitude),
+            Sign::Minus => other.magnitude.cmp(&self.magnitude),
+        }
+    }
 }
 
 impl BigInt {

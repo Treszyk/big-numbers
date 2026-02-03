@@ -1,4 +1,5 @@
 use big_numbers::big_int::{BigInt, Sign};
+use std::cmp::Ordering;
 use std::str::FromStr;
 
 #[test]
@@ -166,6 +167,37 @@ fn test_big_int_div_exhaustive() {
         let (q, r) = a.div(&b);
         assert_eq!(q.to_string(), exp_q, "Quotient mismatch for {} / {}", a_str, b_str);
         assert_eq!(r.to_string(), exp_r, "Remainder mismatch for {} / {}", a_str, b_str);
+    }
+}
+
+#[test]
+fn test_big_int_cmp_exhaustive() {
+    let cases = vec![
+        ("10", "20", Ordering::Less),
+        ("20", "10", Ordering::Greater),
+        ("10", "10", Ordering::Equal),
+        ("-10", "10", Ordering::Less),
+        ("10", "-10", Ordering::Greater),
+        ("-20", "-10", Ordering::Less),
+        ("-10", "-20", Ordering::Greater),
+        ("-10", "-10", Ordering::Equal),
+        ("0", "0", Ordering::Equal),
+        ("0", "-10", Ordering::Greater),
+        ("-10", "0", Ordering::Less),
+        ("18446744073709551616", "18446744073709551615", Ordering::Greater),
+        ("-18446744073709551616", "-18446744073709551615", Ordering::Less),
+    ];
+
+    for (a_str, b_str, expected) in cases {
+        let a = BigInt::from_str(a_str).unwrap();
+        let b = BigInt::from_str(b_str).unwrap();
+        assert_eq!(a.cmp(&b), expected, "Comparison failure for {} vs {}", a_str, b_str);
+        
+        match expected {
+            Ordering::Less => assert!(a < b),
+            Ordering::Greater => assert!(a > b),
+            Ordering::Equal => assert!(a == b),
+        }
     }
 }
 
